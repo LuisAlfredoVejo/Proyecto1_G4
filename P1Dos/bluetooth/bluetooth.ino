@@ -20,7 +20,9 @@ delay(500);
 
 void VerificarMeta(){
   int distancia = sensorUS(12,13);
+  
   if(distancia<1){
+    Serial1.println(distancia);
     Serial.println("Llego a la meta!!!");
   }else{
     Serial.println("En movimiento");
