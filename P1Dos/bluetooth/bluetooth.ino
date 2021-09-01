@@ -19,16 +19,13 @@ delay(500);
 }
 
 void VerificarMeta(){
-/*
   int distancia = sensorUS(12,13);
   if(distancia<1){
-    
+    Serial.println("Llego a la meta!!!");
   }else{
-    
-  }*/
-  Serial1.println("algo");
-  Serial.println("algo2");
-  delay(5000);
+    Serial.println("En movimiento");
+  }
+  
 }
 
 void opciones(){
