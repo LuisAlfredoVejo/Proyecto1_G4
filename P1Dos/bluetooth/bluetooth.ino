@@ -12,19 +12,55 @@
 }
 
 void loop() {
-  String algo="";
+ opciones();
+ delay(50);
+VerificarMeta();
+delay(500);
+}
+
+void VerificarMeta(){
+/*
+  int distancia = sensorUS(12,13);
+  if(distancia<1){
+    
+  }else{
+    
+  }*/
+  Serial1.println("algo");
+  Serial.println("algo2");
+  delay(5000);
+}
+
+void opciones(){
+
+ String algo="";
   while(Serial.available()>0){
    algo +=(char)Serial.read();
   }
-  if(algo!="")
+  if(algo!=""){
     Serial1.println(algo);
-
+    if(algo=="1"){//adelante Las llantas giran 
+      adelante();
+    }else if(algo=="2"){//reversa-> ajustar Giro con todas la llantas al contario
+      reversa();
+    }else if(algo=="3"){//izquierda-> parar llanta derecha 
+      izquierda();
+    }else if(algo=="4"){//derecha-> detener llanta izquierda
+      derecha();
+    }else if(algo=="5"){//alta velocidad--> aumento en velocidad
+      vAlta();
+    }else if(algo=="6"){//velocidad Baja--> bajar velocidad
+      vBaja();
+    }else if(algo=="7"){//Detenerse--> Bajar digitalWrite(pin,LOW);
+      detenerse();
+    }
+  }
+  delay(50);
 }
 
-void velocidad(){
+void adelante(){
   
 }
-
 void izquierda(){
   
 }
@@ -33,10 +69,18 @@ void derecha(){
   
 }
 
-void adelante_reversa(){
+
+void reversa(){
   
 }
 
+void vBaja(){
+  
+}
+
+void vAlta(){
+  
+}
 void detenerse(){
   
 }
