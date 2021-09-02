@@ -50,7 +50,7 @@ void setMotores(){
 }
 void VerificarMeta(){
   int distancia = sensorUS(trig,echo);
-  if(distancia<3){
+  if(distancia<=20){
     stopcar();
     Serial.println("Llego a la meta!!!");
     Serial1.println("Llego a la meta!!!");
