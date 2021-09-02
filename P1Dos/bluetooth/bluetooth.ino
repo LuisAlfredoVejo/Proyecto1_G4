@@ -28,7 +28,7 @@
 }
 
 void loop() {
- //opciones();
+ opciones();
  //delay(50);
  VerificarMeta();
  delay(500);
@@ -55,8 +55,8 @@ void VerificarMeta(){
     Serial.println("Llego a la meta!!!");
     Serial1.println("Llego a la meta!!!");
   }else{
-    //opciones();
-    opciones1(distancia);
+    opciones();
+    //opciones1(distancia);
     Serial1.print("Distancia: ");
     Serial1.print(distancia);
     Serial1.println(" cm");
