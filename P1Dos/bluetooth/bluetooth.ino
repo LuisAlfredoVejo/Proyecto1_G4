@@ -1,22 +1,22 @@
   long duracion;
   long distancia; // float distancia para obtener decimales
-  int motor11=2;
-  int motor12=3;
-  int motor21=4;
-  int motor22=5;
-  int motoratras1=6;
-  int motoratras2=7;
-  int stoplight=8;
-  int derecha=9;
-  int izquierda=10;
-  int detenerse=11; 
-  int echo=12;
+  int motor11=2;  //salida al motor derecho
+  int motor12=3;  //salida al motor derecho
+  int motor21=4;  //salida al motor izquierdo
+  int motor22=5;  //salida al motor izquierdo
+  int motoratras1=6; //salida a los motores de atras
+  int motoratras2=7; //salida a los motores de atras 
+  int stoplight=8;  //luces motores de atras
+  int derecha=9;  //senial para desactivar el derecho
+  int izquierda=10; //senial para desactivar el izquierdo
+  int detenerse=11; //senial para desactivar los motores de atras
+  int echo=12;  
   int trig=13;
-  int right=23;
-  int left=25;
-  int alta = 256;
-  int baja = 50;
-  int actual=150;
+  int right=23;//luz derecha
+  int left=25; //luz izquierda
+  int alta = 256; //velocidad maxima
+  int baja = 50; //velocidad minima
+  int actual=150; //velocidad por default
   
   void setup() {
   // put your setup code here, to run once:
@@ -55,8 +55,8 @@ void VerificarMeta(){
     Serial.println("Llego a la meta!!!");
     Serial1.println("Llego a la meta!!!");
   }else{
-    //opciones();
-    opciones1(distancia);
+    opciones();
+    //opciones1(distancia);
     Serial1.print("Distancia: ");
     Serial1.print(distancia);
     Serial1.println(" cm");
@@ -110,6 +110,8 @@ void opciones(){
 }
 
 void adelante(){
+  if (actual == 0)
+    actual =150;
   analogWrite(derecha, actual);
   analogWrite(izquierda, actual);
   analogWrite(detenerse, actual);
@@ -122,9 +124,7 @@ void adelante(){
   digitalWrite(motor22,LOW);
   digitalWrite(motoratras1,HIGH); 
   digitalWrite(motoratras2,LOW);
-  Serial1.print("Avanzando velocidad actual:  ");
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  enviarMsj("Avanzando velocidad actual:  ","Avanzando");
 }
 
 void reversa(){
@@ -140,43 +140,37 @@ void reversa(){
   digitalWrite(motor22,HIGH);
   digitalWrite(motoratras1,LOW); 
   digitalWrite(motoratras2,HIGH);
-  Serial1.print("Retrocediendo  ");
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  enviarMsj("Retrocediendo  ","Retrocediendo");
 }
 void irIzquierda(){
-  digitalWrite(detenerse,HIGH);
-  digitalWrite(izquierda,HIGH);
+  analogWrite(detenerse,actual);
+  analogWrite(izquierda,actual);
   digitalWrite(derecha,LOW);
   digitalWrite(left,HIGH);
   digitalWrite(right,LOW);
   digitalWrite(stoplight, HIGH);
-  digitalWrite(motor11,LOW); 
-  digitalWrite(motor12,LOW);
-  digitalWrite(motor21,HIGH); 
-  digitalWrite(motor22,LOW);
-  digitalWrite(motoratras1,HIGH); 
-  digitalWrite(motoratras2,LOW);
-  Serial1.print("Avanzando izquierda ");
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  //digitalWrite(motor11,LOW); 
+  //digitalWrite(motor12,LOW);
+  //digitalWrite(motor21,HIGH); 
+  //digitalWrite(motor22,LOW);
+  //digitalWrite(motoratras1,HIGH); 
+  //digitalWrite(motoratras2,LOW);
+  enviarMsj("Avanzando izquierda ","Izquierda");
 }
 void irDerecha(){
-  digitalWrite(detenerse,HIGH);
+  analogWrite(detenerse,actual);
   digitalWrite(izquierda,LOW);
-  digitalWrite(derecha,HIGH);
+  analogWrite(derecha,actual);
   digitalWrite(left,LOW);
   digitalWrite(right,HIGH);  
   digitalWrite(stoplight,HIGH);
-  digitalWrite(motor11,HIGH); 
-  digitalWrite(motor12,LOW);
-  digitalWrite(motor21,LOW); 
-  digitalWrite(motor22,LOW);
-  digitalWrite(motoratras1,HIGH); 
-  digitalWrite(motoratras2,LOW);
-  Serial1.print("Avanzando derecha ");
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  //digitalWrite(motor11,HIGH); 
+  //digitalWrite(motor12,LOW);
+  //digitalWrite(motor21,LOW); 
+  //digitalWrite(motor22,LOW);
+  //digitalWrite(motoratras1,HIGH); 
+  //digitalWrite(motoratras2,LOW);
+  enviarMsj("Avanzando derecha ","Derecha");
 }
 void vAlta(){
   for (int i = actual; i < alta; i++) {
@@ -184,12 +178,11 @@ void vAlta(){
   analogWrite(derecha, actual);
   analogWrite(izquierda, actual);
   analogWrite(detenerse, actual);
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  digitalWrite(left,HIGH);
+  digitalWrite(right,HIGH);  
+  digitalWrite(stoplight,HIGH);
   }
-  Serial1.print("Velocidad alta ");
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  enviarMsj("Velocidad alta ","Velocidad alta");
 }
 void vBaja(){
   for (int i = actual; i >= baja; --i) {
@@ -197,14 +190,14 @@ void vBaja(){
   analogWrite(derecha, actual);
   analogWrite(izquierda, actual);
   analogWrite(detenerse, actual);
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  digitalWrite(left,HIGH);
+  digitalWrite(right,HIGH);  
+  digitalWrite(stoplight,HIGH);
   }
-  Serial1.print("Velocidad baja ");
-  Serial1.print(actual);
-  Serial1.println(" pwm");
+  enviarMsj("Velocidad baja ","Velocidad baja");
 }
 void stopcar(){
+  actual = 0;
   digitalWrite(stoplight,LOW);
   digitalWrite(left,LOW);
   digitalWrite(right,LOW);
@@ -212,8 +205,15 @@ void stopcar(){
   digitalWrite(izquierda,LOW);
   digitalWrite(derecha,LOW);
   Serial1.println("Detenido");
+  Serial.println("Detenido");
 }
 
+void enviarMsj(String msj1, String msj2){
+  Serial1.print(msj1);
+  Serial1.print(actual);
+  Serial1.println(" pwm");
+  Serial.println(msj2);
+}
 int sensorUS(int triggerPin, int echoPin) {
     pinMode(triggerPin, OUTPUT);
     digitalWrite(triggerPin, LOW);
