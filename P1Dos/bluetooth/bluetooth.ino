@@ -198,7 +198,7 @@ void vBaja(){
 }
 void stopcar(){
   actual = 0;
-  digitalWrite(stoplight,LOW);
+  digitalWrite(stoplight,HIGH);
   digitalWrite(left,LOW);
   digitalWrite(right,LOW);
   digitalWrite(detenerse,LOW);
