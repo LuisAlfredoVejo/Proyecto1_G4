@@ -96,59 +96,111 @@ leerHastaEnter macro entrada
 endm
 
 pedirComando macro
-    xor si,si
+    local leer,esA,esCe,esD,esH,esPe,esR,esT,esX,esXmay,esDolar,esOtro,salirpedir
+    leer:
     imprimir pedircom,0EH
     call impsalto
-    pedircasilla:
+        xor si,si
         leerHastaEnter entradasTeclado
+        call impsalto
         analizarEntrada:
-        cmp si, lengthof entradasTeclado
-        je salirpedir
-        cmp entradasTeclado[si], 61H ;Letra a
-        je salirpedir
-        jne esCe
-        jmp analizarEntrada
+        cmp si,lengthof entradasTeclado
+        esA:
+            je salirpedir
+            cmp entradasTeclado[si], 61H ;Letra a
+            jne esCe
+            inc si         
+            cmp entradasTeclado[si], 62H ;Letra b
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], 72H ;Letra r
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], 69H ;Letra i
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], 72H ;Letra r
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], 5FH ;signo_
+            jne esOtro
+            mov cx, 5
+            xor di,di
+            ; mov si, 5
+            bucleprueba:
+                inc si
+                imprime entradasTeclado
+                ; mov al , entradasTeclado[si]
+                mov al , "p"
+                mov path[si],al
+                call impsalto
+                imprime path
+                call impsalto
+                loop bucleprueba
+                call impsalto
+                mov path[si],"$"
+                imprime path
+                call impsalto
+                dec si
+            ;jmp salirpedir ;
+            jmp leer
         esCe: 
             cmp entradasTeclado[si], 63H ;Letra c
             jne esD
+            je salirpedir; aqui debe ir lo demas 
             inc si
             jmp analizarEntrada 
         esD: 
             cmp entradasTeclado[si], 64H ;Letra d
             jne esH
+            je salirpedir; aqui debe ir lo demas 
             inc si
             jmp analizarEntrada 
         esH: 
             cmp entradasTeclado[si], 68H ;Letra h
             jne esPe
+            je salirpedir; aqui debe ir lo demas 
             inc si
             jmp analizarEntrada 
         esPe: 
-            cmp entradasTeclado[si], 46H ;Letra F
+            cmp entradasTeclado[si], 66H ;Letra f
             jne esR
+            je salirpedir; aqui debe ir lo demas 
             inc si
             jmp analizarEntrada 
         esR: 
-            cmp entradasTeclado[si], 47H ;Letra G
+            cmp entradasTeclado[si], 72H ;Letra r
             jne esT
+            je salirpedir; aqui debe ir lo demas 
             inc si
             jmp analizarEntrada 
         esT: 
-            cmp entradasTeclado[si], 48H ;Letra H
+            cmp entradasTeclado[si], 74H ;Letra t
             jne esX
+            je salirpedir; aqui debe ir lo demas 
             inc si
             jmp analizarEntrada 
         esX: 
             cmp entradasTeclado[si], 78H ;4
-            jne esOtro
-            imprimir textosalir,04H
+            jne esXmay
             mov banderaactivo, 0
             inc si
-            jmp salirpedir
+            jmp analizarEntrada
+        esXmay: 
+            cmp entradasTeclado[si], 58H ;4
+            jne esDolar
+            mov banderaactivo, 0
+            inc si
+            jmp analizarEntrada
+        esDolar:
+            cmp entradasTeclado[si], 24H ;$
+            jne esOtro
+            inc si
+            je salirpedir; aqui debe ir lo demas 
         esOtro: 
             imprimir errorComand,0CH
             call impsalto
-            xor si, si
-            jmp pedircasilla
+            jmp leer
     salirpedir:
 endm
+
