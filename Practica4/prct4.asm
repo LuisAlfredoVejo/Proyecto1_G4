@@ -13,10 +13,12 @@ include prct4m.asm
     headnombrecarne db "    Josu",82h," Daniel Caal Torres 201408473",'$'
     headprct4 db "    Pr",0A0h,"ctica 4",'$'
     headcerrar db "    Ingrese x si desea cerrar el programa",'$'
+    msjcrear db "Archivo creado",'$'
     nochar db " ",'$'
+    numeros db "123456789",'$'
     pedircom db "Ingrese comando: ",'$'
     random db "^",'$'
-    path db 100 dup(0)
+    path db 64 dup(0) 
     signos db "=|-#",'$'
     textosalir db "Termin",0A2h," la ejecuci",0A2h,"n",'$'
 .code

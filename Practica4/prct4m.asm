@@ -1,3 +1,17 @@
+crearArchivo macro nombre
+local salir
+mov ah,3ch
+mov cx,0
+mov dx,offset nombre
+int 21h
+jc salir ;si no se pudo crear
+imprime msjcrear
+mov bx,ax
+mov ah,3eh ;cierra el archivo
+int 21h
+salir:
+imprime random
+endm
 encabezado macro
     local bucle, bucle2
     call impsalto
@@ -52,6 +66,12 @@ encabezado macro
         loop bucle2
     call impsalto
 endm
+impchar macro char
+    mov ah,02h
+    mov dl,char 
+    int 21h
+    ret
+endm
 
 imprimeespacios macro cadena,cadena2 
     local bucle
@@ -77,6 +97,78 @@ imprimir macro cadena, color
     int 10h ;Interrupcion para dar color
     lea dx, cadena ;Mostrando la cadena
     int 21h ;Interrupcion para mostrar
+endm
+imprimirvalores macro cadena 
+    local salto, fin
+    xor bx, bx ;Limpiando el registro
+    salto:
+        cmp bx, lengthof cadena-1 ;Verificar si es un salto de linea lo que se esta leyendo ya que la funcion que llama asigna el valor a al
+        je fin
+        esCero:
+            cmp cadena[bx], 0
+            jne esUno
+            impchar numeros[0]
+            inc bx 
+            jmp salto
+        esUno: 
+            cmp cadena[bx], 1
+            jne esDos
+            impchar numeros[1]
+            inc bx 
+            jmp salto
+        esDos:               
+            cmp cadena[bx], 2
+            jne esTres
+            impchar numeros[2]
+            inc bx 
+            jmp salto
+        esTres:  
+            cmp cadena[bx], 3
+            jne esCuatro
+            impchar numeros[3]
+            inc bx 
+            jmp salto
+        esCuatro: 
+            cmp cadena[bx], 4
+            jne esCinco
+            impchar numeros[4]
+            inc bx 
+            jmp salto
+        esCinco: 
+            cmp cadena[bx], 5
+            jne esSeis
+            impchar numeros[5]
+            inc bx 
+            jmp salto
+        esSeis: 
+             cmp cadena[bx], 6
+            jne esSiete
+            impchar numeros[6]
+            inc bx 
+            jmp salto
+        esSiete: 
+            cmp cadena[bx], 7
+            jne esOcho
+            impchar numeros[7]
+            inc bx 
+            jmp salto
+        esOcho: 
+            cmp cadena[bx], 8
+            jne esNueve
+            impchar numeros[8]
+            inc bx 
+            jmp salto
+        esNueve:
+            cmp cadena[bx], 9
+            jne esOtro
+            impchar numeros[9]
+            inc bx 
+            jmp salto
+        esOtro:
+            impchar random[0]
+            inc bx 
+            jmp salto                                                        
+    fin:
 endm
 
 leerHastaEnter macro entrada
@@ -107,41 +199,41 @@ pedirComando macro
         cmp si,lengthof entradasTeclado
         esA:
             je salirpedir
-            cmp entradasTeclado[si], 61H ;Letra a
+            cmp entradasTeclado[si], "a" 
             jne esCe
             inc si         
-            cmp entradasTeclado[si], 62H ;Letra b
+            cmp entradasTeclado[si], "b" 
             jne esOtro
             inc si 
-            cmp entradasTeclado[si], 72H ;Letra r
+            cmp entradasTeclado[si], "r" 
             jne esOtro
             inc si 
-            cmp entradasTeclado[si], 69H ;Letra i
+            cmp entradasTeclado[si], "i" 
             jne esOtro
             inc si 
-            cmp entradasTeclado[si], 72H ;Letra r
+            cmp entradasTeclado[si], "r" 
             jne esOtro
             inc si 
-            cmp entradasTeclado[si], 5FH ;signo_
+            cmp entradasTeclado[si], "_" 
             jne esOtro
-            mov cx, 5
-            xor di,di
-            ; mov si, 5
-            bucleprueba:
-                inc si
-                imprime entradasTeclado
-                ; mov al , entradasTeclado[si]
-                mov al , "p"
-                mov path[si],al
+            inc si
+            imprime entradasTeclado
+            entrar234:
+            cmp entradasTeclado[si], 24H ;$
+            je salir234
+            mov al , entradasTeclado[si]
+            mov path[si-6],al
+            inc si
+            jmp entrar234
+            salir234:                           
+                mov al, 24H
+                mov path[si-6],al
+                mov al, 0
+                mov path[si-5],al
                 call impsalto
-                imprime path
+                imprimir path,03H
                 call impsalto
-                loop bucleprueba
-                call impsalto
-                mov path[si],"$"
-                imprime path
-                call impsalto
-                dec si
+                crearArchivo path
             ;jmp salirpedir ;
             jmp leer
         esCe: 
