@@ -8,12 +8,16 @@ include prct4m.asm
     entradasTeclado db  ?
     entradasTeclad2 db  100 dup('$')
     errorComand db "Error al ingresar comando",'$'
+    handle dw 0
     headuniversidad db "    Universidad de San Carlos de Guatemala",'$'
     headACE1 db "    Arquitectura de computadores y ensambladores 1",'$'
     headnombrecarne db "    Josu",82h," Daniel Caal Torres 201408473",'$'
     headprct4 db "    Pr",0A0h,"ctica 4",'$'
     headcerrar db "    Ingrese x si desea cerrar el programa",'$'
     msjcrear db "Archivo creado",'$'
+    msjerrorabrir db "Error al abrir ", '$'
+    msjabierto db "Archivo abierto", '$'
+    msjNoTXT db "No es .txt la extensi",0A2h,"n es:  ",'$'
     nochar db " ",'$'
     numeros db "123456789",'$'
     pedircom db "Ingrese comando: ",'$'
@@ -21,6 +25,7 @@ include prct4m.asm
     path db 64 dup(0) 
     signos db "=|-#",'$'
     textosalir db "Termin",0A2h," la ejecuci",0A2h,"n",'$'
+    vec db 50 dup('$')
 .code
     impsalto proc
         mov ah,02h

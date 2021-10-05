@@ -1,16 +1,43 @@
+abrirArchivo macro nombre 
+local error, noError
+mov ah,3dh
+mov al,10010010b ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
+mov dx,offset nombre
+int 21h
+jnc noError
+imprime msjerrorabrir
+call impsalto
+jc error
+noError:
+imprime msjabierto
+call impsalto
+mov handle, ax
+mov bx, handle
+mov cx, 255
+int 21h
+;leer archivo
+mov dx,offset vec
+mov ah,3fh
+int 21h
+mov bx,handle
+mov ah, 3eh
+int 21h
+error:
+endm
+
 crearArchivo macro nombre
 local salir
 mov ah,3ch
 mov cx,0
 mov dx,offset nombre
 int 21h
-jc salir ;si no se pudo crear
+jnc salir ;si no se pudo crear
+imprime random
+salir:
 imprime msjcrear
 mov bx,ax
 mov ah,3eh ;cierra el archivo
 int 21h
-salir:
-imprime random
 endm
 encabezado macro
     local bucle, bucle2
@@ -188,7 +215,7 @@ leerHastaEnter macro entrada
 endm
 
 pedirComando macro
-    local leer,esA,esCe,esD,esH,esPe,esR,esT,esX,esXmay,esDolar,esOtro,salirpedir
+    local leer,LeerRuta, esA,esCe,esD,esH,esPe,esR,esT,esX,esXmay,esDolar,esOtro,noEsTXT, salirLeerRuta, salirpedir
     leer:
     imprimir pedircom,0EH
     call impsalto
@@ -217,23 +244,38 @@ pedirComando macro
             cmp entradasTeclado[si], "_" 
             jne esOtro
             inc si
-            imprime entradasTeclado
-            entrar234:
+            ; imprime entradasTeclado
+            ; call impsalto
+            LeerRuta:
             cmp entradasTeclado[si], 24H ;$
-            je salir234
+            je salirLeerRuta
             mov al , entradasTeclado[si]
             mov path[si-6],al
             inc si
-            jmp entrar234
-            salir234:                           
+            jmp LeerRuta
+            salirLeerRuta:                                          
                 mov al, 24H
                 mov path[si-6],al
-                mov al, 0
-                mov path[si-5],al
+                cmp path[si-10], "."
+                jne noEsTXT
+                cmp path[si-9],"t"
+                jne noEsTXT
+                cmp path[si-8],"x"
+                jne noEsTXT
+                cmp path[si-7],"t"
+                jne noEsTXT
+                je esTXT
+                noEsTXT:
+                imprimir msjNoTXT,05H
+                imprime path[si-10]
                 call impsalto
-                imprimir path,03H
+                jmp leer
+                esTXT:
                 call impsalto
-                crearArchivo path
+                ; imprimir path,03H  ;Este se puede quitar despues junto con el siguiente
+                imprime path
+                call impsalto
+                abrirArchivo path
             ;jmp salirpedir ;
             jmp leer
         esCe: 
