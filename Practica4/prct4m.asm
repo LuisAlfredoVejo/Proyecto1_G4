@@ -1,28 +1,96 @@
 abrirArchivo macro nombre 
-local error, noError
-mov ah,3dh
-mov al,10010010b ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
-mov dx,offset nombre
-int 21h
-jnc noError
-imprime msjerrorabrir
-call impsalto
-jc error
-noError:
-imprime msjabierto
-call impsalto
-mov handle, ax
-mov bx, handle
-mov cx, 255
-int 21h
-;leer archivo
-mov dx,offset vec
-mov ah,3fh
-int 21h
-mov bx,handle
-mov ah, 3eh
-int 21h
-error:
+    local error, noError
+    mov ax, @data 
+    mov ds, ax
+    mov dx,offset nombre
+    mov ah,3dh
+    mov al,0 ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
+    int 21h
+    jnc noError
+    imprime msjerrorabrir
+    call impsalto
+    jc error
+    noError:
+    imprime msjabierto
+    call impsalto
+    mov handle, ax
+    mov bx, handle
+    mov cx, 255
+    mov dx,offset leido
+    mov ah,3fh
+    int 21h
+
+    mov dx, offset leido
+    mov ah, 9
+    int 21h 
+    call impsalto
+
+    error:
+endm
+abrirArchivo2 macro  nombre
+    local error, noError
+    borrarLeido
+    mov handle,0
+    mov dx,offset nombre
+    mov ah,3dh
+    mov al, 0; mov al,2 ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
+    int 21h
+    jnc noError
+    imprime msjerrorabrir
+    call impsalto
+    jc error
+    noError:
+    mov handle, ax
+    mov bx, handle
+    mov cx, 1023
+    mov dx,offset leido
+    mov ah,3fh
+    int 21h
+
+    ; mov dx, offset leido
+    ; mov ah, 9
+    ; int 21h 
+    ; call impsalto
+    imprimir msjabierto,06H
+    imprime path
+    call impsalto
+    error:
+ endm
+
+borrarLeido macro
+    local borrado,borrar
+    xor si,si
+    borrar:
+    cmp leido[si],"$"
+    je borrado
+    mov leido[si],24H
+    inc si
+    jmp borrar
+    borrado:
+xor si,si
+endm
+
+contarPalabras macro
+    local contarchar,charcontados,noEspace
+    xor si,si
+    mov counterwords,1
+    contarchar:
+    cmp leido[si],"$"
+    je charcontados
+        cmp leido[si]," "
+        jne noEspace
+        add counterwords,1
+        noEspace:
+    inc si
+    jmp contarchar
+    charcontados:
+    call impsalto
+    ; impchar counterwords
+    xor ax,ax
+    mov al,counterwords
+    call PRINT
+    call impsalto
+xor si,si
 endm
 
 crearArchivo macro nombre
@@ -34,11 +102,12 @@ int 21h
 jnc salir ;si no se pudo crear
 imprime random
 salir:
-imprime msjcrear
+imprimir msjcrear, 02H
 mov bx,ax
 mov ah,3eh ;cierra el archivo
 int 21h
 endm
+
 encabezado macro
     local bucle, bucle2
     call impsalto
@@ -215,7 +284,7 @@ leerHastaEnter macro entrada
 endm
 
 pedirComando macro
-    local leer,LeerRuta, esA,esCe,esD,esH,esPe,esR,esT,esX,esXmay,esDolar,esOtro,noEsTXT, salirLeerRuta, salirpedir
+    local leer,LeerRuta, esA,esar,esCe,esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,noEsTXT, salirLeerRuta, salirpedir
     leer:
     imprimir pedircom,0EH
     call impsalto
@@ -224,8 +293,8 @@ pedirComando macro
         call impsalto
         analizarEntrada:
         cmp si,lengthof entradasTeclado
+        je salirpedir
         esA:
-            je salirpedir
             cmp entradasTeclado[si], "a" 
             jne esCe
             inc si         
@@ -267,53 +336,189 @@ pedirComando macro
                 je esTXT
                 noEsTXT:
                 imprimir msjNoTXT,05H
-                imprime path[si-10]
+                imprime path[si-9]
                 call impsalto
                 jmp leer
                 esTXT:
-                call impsalto
                 ; imprimir path,03H  ;Este se puede quitar despues junto con el siguiente
-                imprime path
-                call impsalto
-                abrirArchivo path
+                abrirArchivo2 path
             ;jmp salirpedir ;
             jmp leer
         esCe: 
-            cmp entradasTeclado[si], 63H ;Letra c
+            cmp entradasTeclado[si], "c" 
             jne esD
-            je salirpedir; aqui debe ir lo demas 
             inc si
-            jmp analizarEntrada 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "l" 
+            jne esn
+            inc si
+            cmp entradasTeclado[si], "o"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "r"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "e"
+            jne esOtro
+            inc si 
+            jmp esar
+            esn:
+                cmp entradasTeclado[si], "n"
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "t"
+                jne esOtro
+                inc si 
+            esar:
+            cmp entradasTeclado[si], "a"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "r"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "_"
+            jne esOtro
+            inc si 
+            contarPalabras
+            call impsalto
+            imprime leido
+            call impsalto
+            jmp leer
         esD: 
-            cmp entradasTeclado[si], 64H ;Letra d
+            cmp entradasTeclado[si], "d" 
             jne esH
-            je salirpedir; aqui debe ir lo demas 
             inc si
-            jmp analizarEntrada 
+            cmp entradasTeclado[si], "i" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "p" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "t" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "n" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "g" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "_" 
+            jne esOtro
+            inc si
+            imprime msjDipt
+            call impsalto
+            jmp leer 
         esH: 
-            cmp entradasTeclado[si], 68H ;Letra h
+            cmp entradasTeclado[si], "h" ;Letra h
             jne esPe
-            je salirpedir; aqui debe ir lo demas 
             inc si
-            jmp analizarEntrada 
+            cmp entradasTeclado[si], "i" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "a" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "t" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "_" 
+            jne esOtro
+            inc si
+            imprime msjHiato
+            call impsalto
+            jmp leer
         esPe: 
-            cmp entradasTeclado[si], 66H ;Letra f
+            cmp entradasTeclado[si], "p" 
             jne esR
-            je salirpedir; aqui debe ir lo demas 
             inc si
-            jmp analizarEntrada 
+            cmp entradasTeclado[si], "r" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "p" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "_" 
+            jne esOtro
+            inc si
+            imprime msjProp
+            call impsalto
+            jmp leer
         esR: 
-            cmp entradasTeclado[si], 72H ;Letra r
+            cmp entradasTeclado[si],"r"
             jne esT
-            je salirpedir; aqui debe ir lo demas 
             inc si
-            jmp analizarEntrada 
+            cmp entradasTeclado[si], "e"  
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "p" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "r" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "t" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "e" 
+            jne esOtro
+            inc si 
+            imprimir msjRept, 0BH
+            call impsalto
+            crearArchivo reportname
+            call impsalto
+            jmp leer
         esT: 
-            cmp entradasTeclado[si], 74H ;Letra t
+            cmp entradasTeclado[si], "t" ;Letra t
             jne esX
-            je salirpedir; aqui debe ir lo demas 
             inc si
-            jmp analizarEntrada 
+            cmp entradasTeclado[si], "r" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "i" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "p" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "t" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "n" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "g" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "_" 
+            jne esOtro
+            inc si
+            imprime msjTript
+            call impsalto
+            jmp leer  
         esX: 
             cmp entradasTeclado[si], 78H ;4
             jne esXmay
