@@ -24,7 +24,6 @@ include prct4m.asm
     msjabierto db "Archivo abierto  ", '$'
     msjNoTXT db "No es .txt, la extensi",0A2h,"n es:  ",'$'
     msjDipt db "Fase diptongo", '$'
-    msjTript db "Fase triptongo", '$'
     msjHiato db "Fase hiato",'$'
     msjProp db "Fase proporcion",'$'
     msjRept db "Generando reporte",'$'
@@ -33,6 +32,7 @@ include prct4m.asm
     pedircom db "Ingrese comando: ",'$'
     random db "^",'$'
     reportname db "reporte.txt",0
+    palabra db 64 dup(0)
     path db 64 dup(0) 
     signos db "=|-#",'$'
     textosalir db "Termin",0A2h," la ejecuci",0A2h,"n",'$'

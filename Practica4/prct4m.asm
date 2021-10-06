@@ -284,7 +284,7 @@ leerHastaEnter macro entrada
 endm
 
 pedirComando macro
-    local leer,LeerRuta, esA,esar,esCe,esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,noEsTXT, salirLeerRuta, salirpedir
+    local leer,LeerRuta, esA,esar,esCe,esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,leerPalTrip, noEsTXT, salirLeerPalTrip, salirLeerRuta, salirpedir
     leer:
     imprimir pedircom,0EH
     call impsalto
@@ -414,9 +414,19 @@ pedirComando macro
             cmp entradasTeclado[si], "_" 
             jne esOtro
             inc si
-            imprime msjDipt
-            call impsalto
-            jmp leer 
+            leerPalDip:
+            cmp entradasTeclado[si], 24H ;$
+            je salirLeerPalDip
+            mov al , entradasTeclado[si]
+            mov palabra[si-9],al
+            inc si
+            jmp leerPalDip
+            salirLeerPalDip:                                          
+                mov al, 24H
+                mov palabra[si-9],al
+                imprime palabra ;analizarsiestrip
+                call impsalto
+                jmp leer 
         esH: 
             cmp entradasTeclado[si], "h" ;Letra h
             jne esPe
@@ -436,9 +446,19 @@ pedirComando macro
             cmp entradasTeclado[si], "_" 
             jne esOtro
             inc si
-            imprime msjHiato
-            call impsalto
-            jmp leer
+            leerPalHiato:
+            cmp entradasTeclado[si], 24H ;$
+            je salirLeerPalHiato
+            mov al , entradasTeclado[si]
+            mov palabra[si-6],al
+            inc si
+            jmp leerPalHiato
+            salirLeerPalHiato:                                          
+                mov al, 24H
+                mov palabra[si-6],al
+                imprime palabra ;analizarsiestrip
+                call impsalto
+                jmp leer
         esPe: 
             cmp entradasTeclado[si], "p" 
             jne esR
@@ -516,9 +536,19 @@ pedirComando macro
             cmp entradasTeclado[si], "_" 
             jne esOtro
             inc si
-            imprime msjTript
-            call impsalto
-            jmp leer  
+            leerPalTrip:
+            cmp entradasTeclado[si], 24H ;$
+            je salirLeerPalTrip
+            mov al , entradasTeclado[si]
+            mov palabra[si-10],al
+            inc si
+            jmp leerPalTrip
+            salirLeerPalTrip:                                          
+                mov al, 24H
+                mov palabra[si-10],al
+                imprime palabra ;analizarsiestrip
+                call impsalto
+                jmp leer
         esX: 
             cmp entradasTeclado[si], 78H ;4
             jne esXmay
