@@ -28,17 +28,21 @@ abrirArchivo macro nombre
     error:
 endm
 abrirArchivo2 macro  nombre
-    local error, noError
+    local error, noError,noabierto
+    cmp handle,0
+    je noabierto
+    cerrarArchivo
+    noabierto:
     borrarLeido
-    mov handle,0
+    ; mov handle,0
     mov dx,offset nombre
     mov ah,3dh
     mov al, 0; mov al,2 ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
     int 21h
     jnc noError
-    imprime msjerrorabrir
+    imprimir msjerrorabrir,05H
     call impsalto
-    jc error
+    jmp error
     noError:
     mov handle, ax
     mov bx, handle
@@ -52,7 +56,7 @@ abrirArchivo2 macro  nombre
     ; int 21h 
     ; call impsalto
     imprimir msjabierto,06H
-    imprime path
+    imprimir path, 0AH
     call impsalto
     error:
  endm
@@ -69,27 +73,34 @@ borrarLeido macro
     borrado:
 xor si,si
 endm
-
+cerrarArchivo macro 
+    local salircerr
+    mov ah,3eh 
+    mov bx,handle
+    int 21h
+    jnc salircerr
+    imprimir msjerrorcerrar,05H
+    salircerr:
+endm
 contarPalabras macro
-    local contarchar,charcontados,noEspace
+    local contarchar,charcontados,noSpace
     xor si,si
     mov counterwords,1
     contarchar:
     cmp leido[si],"$"
     je charcontados
-        cmp leido[si]," "
-        jne noEspace
-        add counterwords,1
-        noEspace:
-    inc si
-    jmp contarchar
+    cmp leido[si]," "
+    jne noSpace
+    add counterwords,1
+    noSpace:
+        inc si
+        jmp contarchar
     charcontados:
-    call impsalto
-    ; impchar counterwords
-    xor ax,ax
-    mov al,counterwords
-    call PRINT
-    call impsalto
+        call impsalto
+        xor ax,ax
+        mov al,counterwords
+        call PRINT
+        call impsalto
 xor si,si
 endm
 
@@ -99,7 +110,7 @@ mov ah,3ch
 mov cx,0
 mov dx,offset nombre
 int 21h
-jnc salir ;si no se pudo crear
+jnc salir ;si se pudo crear
 imprime random
 salir:
 imprimir msjcrear, 02H
@@ -107,6 +118,7 @@ mov bx,ax
 mov ah,3eh ;cierra el archivo
 int 21h
 endm
+
 
 encabezado macro
     local bucle, bucle2
@@ -186,7 +198,7 @@ imprime macro cadena
   int 21h
 endm
 
-imprimir macro cadena, color
+imprimir2 macro cadena, color
     mov ah, 09h ;Tipo de operacion de 21h muestra caracteres, basicamente print
     mov bl, color ;Color del texto de salida
     mov cx, lengthof cadena - 1 ;Pintar el texto en su totalidad
@@ -194,6 +206,24 @@ imprimir macro cadena, color
     lea dx, cadena ;Mostrando la cadena
     int 21h ;Interrupcion para mostrar
 endm
+
+imprimir macro cadena, color
+    local longitud, salirlong
+    xor bx,bx 
+    longitud: ;Pintar el texto en su totalidad
+    cmp cadena[bx],"$"
+    je salirlong
+    inc bx
+    jmp longitud
+    salirlong: 
+    mov ah, 09h ;Tipo de operacion de 21h muestra caracteres, basicamente print
+    mov cx,bx
+    mov bl, color ;Color del texto de salida
+    int 10h ;Interrupcion para dar color
+    lea dx, cadena ;Mostrando la cadena
+    int 21h ;Interrupcion para mostrar
+endm
+
 imprimirvalores macro cadena 
     local salto, fin
     xor bx, bx ;Limpiando el registro
@@ -284,7 +314,7 @@ leerHastaEnter macro entrada
 endm
 
 pedirComando macro
-    local leer,LeerRuta, esA,esar,esCe,esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,leerPalTrip, noEsTXT, salirLeerPalTrip, salirLeerRuta, salirpedir
+    local colorear,contar,contHia,contPal,contTrip,leer,LeerRuta, esA,esar,esCe, esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,leerPalTrip, noEsTXT, salirLeerPalTrip, salirLeerRuta, salirpedir
     leer:
     imprimir pedircom,0EH
     call impsalto
@@ -336,7 +366,7 @@ pedirComando macro
                 je esTXT
                 noEsTXT:
                 imprimir msjNoTXT,05H
-                imprime path[si-9]
+                imprimir path[si-9],07H
                 call impsalto
                 jmp leer
                 esTXT:
@@ -372,20 +402,121 @@ pedirComando macro
                 jne esOtro
                 inc si 
             esar:
-            cmp entradasTeclado[si], "a"
-            jne esOtro
-            inc si 
-            cmp entradasTeclado[si], "r"
-            jne esOtro
-            inc si 
-            cmp entradasTeclado[si], "_"
-            jne esOtro
-            inc si 
-            contarPalabras
-            call impsalto
-            imprime leido
-            call impsalto
-            jmp leer
+                cmp entradasTeclado[si], "a"
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "r"
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si-4],"n"
+                jne colorear
+                cmp entradasTeclado[si], "_"
+                jne esOtro
+                inc si 
+                contar:
+                    cmp entradasTeclado[si], "d"
+                    jne contHia
+                    inc si 
+                    cmp entradasTeclado[si], "i" 
+                    jne esOtro
+                    inc si
+                    cmp entradasTeclado[si], "p" 
+                    jne esOtro
+                    inc si 
+                    cmp entradasTeclado[si], "t" 
+                    jne esn
+                    inc si
+                    cmp entradasTeclado[si], "o"
+                    jne esOtro
+                    inc si 
+                    cmp entradasTeclado[si], "n"
+                    jne esOtro
+                    inc si 
+                    cmp entradasTeclado[si], "g"
+                    jne esOtro
+                    inc si 
+                    cmp entradasTeclado[si], "o"
+                    jne esOtro
+                    inc si    
+                    imprimir msjDipt, 02h
+                    jmp leer                     
+                    contHia:
+                        cmp entradasTeclado[si], "h" ;Letra h
+                        jne contPal
+                        inc si
+                        cmp entradasTeclado[si], "i" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "a" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "t" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "o" 
+                        jne esOtro
+                        inc si 
+                        imprimir msjHiato, 02h
+                        jmp leer  
+                    contPal:
+                        cmp entradasTeclado[si], "p" 
+                        jne contTrip
+                        inc si
+                        cmp entradasTeclado[si], "a" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "l" 
+                        jne esn
+                        inc si
+                        cmp entradasTeclado[si], "a"
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "b"
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "r"
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "a"
+                        jne esOtro
+                        inc si                 
+                        contarPalabras
+                        call impsalto
+                        jmp leer
+                    contTrip:
+                        cmp entradasTeclado[si], "t" ;Letra t
+                        jne esOtro
+                        inc si
+                        cmp entradasTeclado[si], "r" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "i" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "p" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "t" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "o" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "n" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "g" 
+                        jne esOtro
+                        inc si 
+                        cmp entradasTeclado[si], "o" 
+                        jne esOtro
+                        inc si 
+                        imprimir msjTript, 02h
+                        jmp leer  
+                colorear:
+                    imprimir leido, 8FH
+                    call impsalto
+                    jmp leer
         esD: 
             cmp entradasTeclado[si], "d" 
             jne esH
@@ -424,7 +555,7 @@ pedirComando macro
             salirLeerPalDip:                                          
                 mov al, 24H
                 mov palabra[si-9],al
-                imprime palabra ;analizarsiestrip
+                imprimir palabra, 03H ;analizarsiestrip
                 call impsalto
                 jmp leer 
         esH: 
@@ -456,7 +587,7 @@ pedirComando macro
             salirLeerPalHiato:                                          
                 mov al, 24H
                 mov palabra[si-6],al
-                imprime palabra ;analizarsiestrip
+                imprimir palabra, 03H ;analizarsiestrip
                 call impsalto
                 jmp leer
         esPe: 
@@ -546,7 +677,7 @@ pedirComando macro
             salirLeerPalTrip:                                          
                 mov al, 24H
                 mov palabra[si-10],al
-                imprime palabra ;analizarsiestrip
+                imprimir palabra,03H ;analizarsiestrip
                 call impsalto
                 jmp leer
         esX: 
@@ -570,6 +701,6 @@ pedirComando macro
             imprimir errorComand,0CH
             call impsalto
             jmp leer
-    salirpedir:
+        salirpedir:
 endm
 
