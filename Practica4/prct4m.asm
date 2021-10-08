@@ -83,7 +83,7 @@ cerrarArchivo macro
     salircerr:
 endm
 contarPalabras macro
-    local contarchar,charcontados,noSpace
+    local contarchar,charcontados,noCRLF, noSpace
     xor si,si
     mov counterwords,1
     contarchar:
@@ -91,10 +91,48 @@ contarPalabras macro
     je charcontados
     cmp leido[si]," "
     jne noSpace
+    cmp leido[si+1]," "
+    je noSpace
+    cmp leido[si+1],9
+    je noSpace
+    cmp leido[si+1],13
+    je noSpace
     add counterwords,1
     noSpace:
-        inc si
-        jmp contarchar
+        cmp leido[si],9
+        jne noTab
+        cmp leido[si+1],9
+        je noTab
+        cmp leido[si+1]," "
+        je noTab
+        cmp leido[si+1],13
+        je noTab
+        add counterwords,1
+        noTab:
+            cmp leido[si],13
+            jne noCRLF
+            cmp leido[si+1],9
+            je noCRLF
+            cmp leido[si+1]," "
+            je noCRLF
+            cmp leido[si+1],13
+            je noCRLF
+            cmp leido[si+1],10
+            je noCRLF
+            add counterwords,1
+            noCRLF:
+                cmp leido[si],10
+                jne noLF
+                cmp leido[si+1],9
+                je noLF
+                cmp leido[si+1]," "
+                je noLF
+                cmp leido[si+1],13
+                je noLF
+                add counterwords,1
+                noLF:
+                inc si
+                jmp contarchar
     charcontados:
         call impsalto
         xor ax,ax
@@ -438,7 +476,11 @@ pedirComando macro
                     cmp entradasTeclado[si], "o"
                     jne esOtro
                     inc si    
-                    imprimir msjDipt, 02h
+                    clasificarDiptongo leido
+                    xor ax,ax
+                    mov al, flagDiptongo
+                    CALL PRINT
+                    call impsalto
                     jmp leer                     
                     contHia:
                         cmp entradasTeclado[si], "h" ;Letra h
@@ -456,7 +498,11 @@ pedirComando macro
                         cmp entradasTeclado[si], "o" 
                         jne esOtro
                         inc si 
-                        imprimir msjHiato, 02h
+                        clasificarHiato leido
+                        xor ax,ax
+                        mov al, flagHiato
+                        CALL PRINT
+                        call impsalto
                         jmp leer  
                     contPal:
                         cmp entradasTeclado[si], "p" 
@@ -511,7 +557,11 @@ pedirComando macro
                         cmp entradasTeclado[si], "o" 
                         jne esOtro
                         inc si 
-                        imprimir msjTript, 02h
+                        clasificarTriptongo leido
+                        xor ax,ax
+                        mov al, flagTriptongo
+                        CALL PRINT
+                        call impsalto
                         jmp leer  
                 colorear:
                     imprimir leido, 8FH
@@ -555,7 +605,10 @@ pedirComando macro
             salirLeerPalDip:                                          
                 mov al, 24H
                 mov palabra[si-9],al
-                imprimir palabra, 03H ;analizarsiestrip
+                imprimir palabra, 03H 
+                call impsalto
+                clasificarDiptongo palabra
+                clasificarDiptongoPrint
                 call impsalto
                 jmp leer 
         esH: 
@@ -587,8 +640,10 @@ pedirComando macro
             salirLeerPalHiato:                                          
                 mov al, 24H
                 mov palabra[si-6],al
-                imprimir palabra, 03H ;analizarsiestrip
+                imprimir palabra, 03H 
                 call impsalto
+                clasificarHiato palabra
+                clasificarHiatoPrint
                 jmp leer
         esPe: 
             cmp entradasTeclado[si], "p" 
@@ -677,8 +732,9 @@ pedirComando macro
             salirLeerPalTrip:                                          
                 mov al, 24H
                 mov palabra[si-10],al
-                imprimir palabra,03H ;analizarsiestrip
-                call impsalto
+                clasificarTriptongo palabra
+                clasificarTriptongoPrint
+
                 jmp leer
         esX: 
             cmp entradasTeclado[si], 78H ;4

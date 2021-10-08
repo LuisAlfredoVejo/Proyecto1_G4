@@ -1,4 +1,5 @@
 include prct4m.asm
+include prct4m2.asm
 .model small
 .stack 128
 .data
@@ -12,6 +13,15 @@ include prct4m.asm
     entradasTeclad2 db  100 dup('$')
     errorComand db "Error al ingresar comando",'$'
     filename db "Prueba.txt",0
+
+    flagDiptongo db 0
+    flagcreciente db 0
+    flagdecreciente db 0
+    flaghomogeneo db 0
+    flagHiato db 0
+    flagacentual db 0
+    flagsimple db 0
+    flagTriptongo db 0
     handle dw 0
     headuniversidad db "    Universidad de San Carlos de Guatemala",'$'
     headACE1 db "    Arquitectura de computadores y ensambladores 1",'$'
@@ -38,6 +48,20 @@ include prct4m.asm
     path db 64 dup(0) 
     signos db "=|-#",'$'
     textosalir db "Termin",0A2h," la ejecuci",0A2h,"n",'$'
+
+    diptongo db "ia ie io ua ue uo ai au ei eu oi ou iu ui",'$'
+    hiato db "aí aú eí eú oí oú ía íe ío úa úe úo aa ee ii oo uu ae ao ea eo oa oe",'$'
+    triptongo db "iai ieu iei ieu ioi iou uai uau uei ueu uoi uou",'$'
+    esdipt db "es diptongo",'$'
+    esDecreciente db "es decreciente",'$'
+    esCreciente db "es creciente",'$'
+    esHomogeneo db "es homogeneo",'$'
+    estript db "es triptongo",'$'
+    esHiato db "es hiato",'$'
+    esSimple db "es simple",'$'
+    esAcentu db "es asentual",'$'
+    noes db "No es ",'$'
+
 
 .code
 
