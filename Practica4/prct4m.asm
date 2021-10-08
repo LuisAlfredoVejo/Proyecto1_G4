@@ -1,30 +1,25 @@
 abrirArchivo macro nombre 
-    local error, noError
-    mov ax, @data 
-    mov ds, ax
+    local error, noError,noabierto
+    cmp handlerep,0
+    je noabierto
+    cerrarArchivorep
+    noabierto:
+    borrarLeidorep
     mov dx,offset nombre
     mov ah,3dh
-    mov al,0 ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
+    mov al, 2; mov al,2 ;0h solo lectura, 1h solo escritura, 2 lectura y escritura
     int 21h
     jnc noError
-    imprime msjerrorabrir
+    imprimir msjerrorabrir,05H
     call impsalto
-    jc error
+    jmp error
     noError:
-    imprime msjabierto
-    call impsalto
-    mov handle, ax
-    mov bx, handle
-    mov cx, 255
-    mov dx,offset leido
+    mov handlerep, ax
+    mov bx, handlerep
+    mov cx, 1023
+    mov dx,offset leidorep
     mov ah,3fh
     int 21h
-
-    mov dx, offset leido
-    mov ah, 9
-    int 21h 
-    call impsalto
-
     error:
 endm
 abrirArchivo2 macro  nombre
@@ -73,6 +68,18 @@ borrarLeido macro
     borrado:
 xor si,si
 endm
+borrarLeidorep macro
+    local borrado,borrar
+    xor si,si
+    borrar:
+    cmp leidorep[si],"$"
+    je borrado
+    mov leidorep[si],24H
+    inc si
+    jmp borrar
+    borrado:
+xor si,si
+endm
 cerrarArchivo macro 
     local salircerr
     mov ah,3eh 
@@ -82,81 +89,41 @@ cerrarArchivo macro
     imprimir msjerrorcerrar,05H
     salircerr:
 endm
-contarPalabras macro
-    local contarchar,charcontados,noCRLF, noSpace
-    xor si,si
-    mov counterwords,1
-    contarchar:
-    cmp leido[si],"$"
-    je charcontados
-    cmp leido[si]," "
-    jne noSpace
-    cmp leido[si+1]," "
-    je noSpace
-    cmp leido[si+1],9
-    je noSpace
-    cmp leido[si+1],13
-    je noSpace
-    add counterwords,1
-    noSpace:
-        cmp leido[si],9
-        jne noTab
-        cmp leido[si+1],9
-        je noTab
-        cmp leido[si+1]," "
-        je noTab
-        cmp leido[si+1],13
-        je noTab
-        add counterwords,1
-        noTab:
-            cmp leido[si],13
-            jne noCRLF
-            cmp leido[si+1],9
-            je noCRLF
-            cmp leido[si+1]," "
-            je noCRLF
-            cmp leido[si+1],13
-            je noCRLF
-            cmp leido[si+1],10
-            je noCRLF
-            add counterwords,1
-            noCRLF:
-                cmp leido[si],10
-                jne noLF
-                cmp leido[si+1],9
-                je noLF
-                cmp leido[si+1]," "
-                je noLF
-                cmp leido[si+1],13
-                je noLF
-                add counterwords,1
-                noLF:
-                inc si
-                jmp contarchar
-    charcontados:
-        call impsalto
-        xor ax,ax
-        mov al,counterwords
-        call PRINT
-        call impsalto
-xor si,si
+cerrarArchivorep macro 
+    local salircerr
+    mov ah,3eh 
+    mov bx,handlerep
+    int 21h
+    jnc salircerr
+    imprimir msjerrorcerrar,05H
+    salircerr:
 endm
-
 crearArchivo macro nombre
-local salir
-mov ah,3ch
-mov cx,0
-mov dx,offset nombre
-int 21h
-jnc salir ;si se pudo crear
-imprime random
-salir:
-imprimir msjcrear, 02H
-mov bx,ax
-mov ah,3eh ;cierra el archivo
-int 21h
+    local salir
+    mov ah,3ch
+    mov cx,0
+    mov dx,offset nombre
+    int 21h
+    jnc salir ;si se pudo crear
+    imprimir errorarch, 0Dh
+    salir:
+    imprimir msjcrear, 02H
+    call impsalto
+    mov bx,ax
+    mov ah,3eh ;cierra el archivo
+    int 21h
 endm
+escribirArchivo macro
+ mov	ah,40h
+ mov	bx,handlerep
+ mov	cx,lengthof textoreporte-1
+ lea	dx,textoreporte
+ int	21h
 
+ mov	ah,3eh
+ mov	bx,handlerep
+ int	21h     
+endm 
 
 encabezado macro
     local bucle, bucle2
@@ -352,7 +319,7 @@ leerHastaEnter macro entrada
 endm
 
 pedirComando macro
-    local colorear,contar,contHia,contPal,contTrip,leer,LeerRuta, esA,esar,esCe, esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,leerPalTrip, noEsTXT, salirLeerPalTrip, salirLeerRuta, salirpedir
+    local colorear,contar,contHia,contPal,contTrip,leer,LeerRuta, esA,esar,esCe, esD,esH,esn,esPe,esR,esT,esX,esXmay,esDolar,esOtro,leerPalTrip, noEsTXT, propHia, salirLeerPalTrip, salirLeerRuta, salirpedir
     leer:
     imprimir pedircom,0EH
     call impsalto
@@ -381,8 +348,6 @@ pedirComando macro
             cmp entradasTeclado[si], "_" 
             jne esOtro
             inc si
-            ; imprime entradasTeclado
-            ; call impsalto
             LeerRuta:
             cmp entradasTeclado[si], 24H ;$
             je salirLeerRuta
@@ -408,9 +373,7 @@ pedirComando macro
                 call impsalto
                 jmp leer
                 esTXT:
-                ; imprimir path,03H  ;Este se puede quitar despues junto con el siguiente
                 abrirArchivo2 path
-            ;jmp salirpedir ;
             jmp leer
         esCe: 
             cmp entradasTeclado[si], "c" 
@@ -483,7 +446,7 @@ pedirComando macro
                     call impsalto
                     jmp leer                     
                     contHia:
-                        cmp entradasTeclado[si], "h" ;Letra h
+                        cmp entradasTeclado[si], "h" 
                         jne contPal
                         inc si
                         cmp entradasTeclado[si], "i" 
@@ -527,10 +490,11 @@ pedirComando macro
                         jne esOtro
                         inc si                 
                         contarPalabras
+                        contarPalabrasPrint
                         call impsalto
                         jmp leer
                     contTrip:
-                        cmp entradasTeclado[si], "t" ;Letra t
+                        cmp entradasTeclado[si], "t"
                         jne esOtro
                         inc si
                         cmp entradasTeclado[si], "r" 
@@ -642,7 +606,7 @@ pedirComando macro
                 mov palabra[si-6],al
                 imprimir palabra, 03H 
                 call impsalto
-                clasificarHiato palabra
+                clasificarHiato2 palabra
                 clasificarHiatoPrint
                 jmp leer
         esPe: 
@@ -661,7 +625,114 @@ pedirComando macro
             cmp entradasTeclado[si], "_" 
             jne esOtro
             inc si
-            imprime msjProp
+            cmp entradasTeclado[si], "d"
+            jne propHia
+            inc si 
+            cmp entradasTeclado[si], "i" 
+            jne esOtro
+            inc si
+            cmp entradasTeclado[si], "p" 
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "t" 
+            jne esn
+            inc si
+            cmp entradasTeclado[si], "o"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "n"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "g"
+            jne esOtro
+            inc si 
+            cmp entradasTeclado[si], "o"
+            jne esOtro
+            inc si 
+                contarPalabras
+                clasificarDiptongo leido  
+                xor ax,ax
+                mov ax,100
+                mul flagDiptongo
+                div counterwords
+                mov propdiptongo,al
+                xor ax,ax
+                mov al,propdiptongo
+                call PRINT
+                imprime percent
+                call impsalto
+            jmp leer                     
+            propHia:
+                cmp entradasTeclado[si], "h" 
+                jne propTrip
+                inc si
+                cmp entradasTeclado[si], "i" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "a" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "t" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "o" 
+                jne esOtro
+                inc si 
+                    contarPalabras
+                    clasificarHiato leido  
+                    xor ax,ax
+                    mov ax,100
+                    mul flagHiato
+                    div counterwords
+                    mov propdiptongo,al
+                    xor ax,ax
+                    mov al,propdiptongo
+                    call PRINT
+                    imprime percent
+                    call impsalto
+                jmp leer  
+            propTrip:
+                cmp entradasTeclado[si], "t"
+                jne esOtro
+                inc si
+                cmp entradasTeclado[si], "r" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "i" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "p" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "t" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "o" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "n" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "g" 
+                jne esOtro
+                inc si 
+                cmp entradasTeclado[si], "o" 
+                jne esOtro
+                inc si 
+                    contarPalabras
+                    clasificarTriptongo leido  
+                    xor ax,ax
+                    mov ax,100
+                    mul flagTriptongo
+                    div counterwords
+                    mov propdiptongo,al
+                    xor ax,ax
+                    mov al,propdiptongo
+                    call PRINT
+                    imprime percent
+                    call impsalto
+                call impsalto
+                jmp leer  
             call impsalto
             jmp leer
         esR: 
@@ -686,9 +757,13 @@ pedirComando macro
             cmp entradasTeclado[si], "e" 
             jne esOtro
             inc si 
+            printReporte
             imprimir msjRept, 0BH
             call impsalto
             crearArchivo reportname
+            abrirArchivo reportname
+            writeReporte
+            escribirArchivo
             call impsalto
             jmp leer
         esT: 

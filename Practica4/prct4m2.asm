@@ -306,7 +306,7 @@
                     jmp lectura
             esOo:
                 cmp cadenad[si],"o"
-                jne esOuti
+                jne esDolar
                 inc si 
                 inc flagHiato 
                 inc flagsimple
@@ -328,7 +328,7 @@
             je salirLectura
             inc si
         esOtro:     
-            inc si 
+            inc si
             jmp lectura  
         salirLectura: 
     endm
@@ -520,7 +520,7 @@
                     jmp lectura
             esOo:
                 cmp cadenad[si],"o"
-                jne esOuti
+                jne esDolar
                 inc si 
                 inc flagHiato 
                 inc flagsimple
@@ -727,3 +727,212 @@
         finaltrip:
         call impsalto
     endm
+
+
+    contarPalabras macro
+        local contarchar,charcontados,noCRLF, noSpace,noTab,noLF
+        xor si,si
+        mov counterwords,1
+        contarchar:
+        cmp leido[si],"$"
+        je charcontados
+        cmp leido[si]," "
+        jne noSpace
+        cmp leido[si+1]," "
+        je noSpace
+        cmp leido[si+1],9
+        je noSpace
+        cmp leido[si+1],13
+        je noSpace
+        add counterwords,1
+        noSpace:
+            cmp leido[si],9
+            jne noTab
+            cmp leido[si+1],9
+            je noTab
+            cmp leido[si+1]," "
+            je noTab
+            cmp leido[si+1],13
+            je noTab
+            add counterwords,1
+            noTab:
+                cmp leido[si],13
+                jne noCRLF
+                cmp leido[si+1],9
+                je noCRLF
+                cmp leido[si+1]," "
+                je noCRLF
+                cmp leido[si+1],13
+                je noCRLF
+                cmp leido[si+1],10
+                je noCRLF
+                add counterwords,1
+                noCRLF:
+                    cmp leido[si],10
+                    jne noLF
+                    cmp leido[si+1],9
+                    je noLF
+                    cmp leido[si+1]," "
+                    je noLF
+                    cmp leido[si+1],13
+                    je noLF
+                    add counterwords,1
+                    noLF:
+                    inc si
+                    jmp contarchar
+        charcontados:
+    xor si,si
+    endm
+
+    contarPalabrasPrint macro
+        xor ax,ax
+        mov al,counterwords
+        call PRINT
+        imprime palabrapala
+        call impsalto
+    endm
+
+    printReporte macro 
+        contarPalabras
+        imprimir msjDipt, 10
+        call impsalto
+            imprimir msjCanti, 0Fh
+            clasificarDiptongo leido  
+            ;cantidad: 
+            xor ax,ax
+            mov al, flagDiptongo
+            CALL PRINT
+            call impsalto
+            imprimir msjProp, 0Fh
+            ;proporcion
+            xor ax,ax
+            mov ax,100
+            mul flagDiptongo
+            div counterwords
+            mov propdiptongo,al
+            xor ax,ax
+            mov al,propdiptongo
+            call PRINT
+            imprime percent
+            call impsalto
+        imprimir msjHiato, 12
+        call impsalto
+            imprimir msjCanti, 0Fh
+            clasificarHiato leido
+            ;cantidad:
+            xor ax,ax
+            mov al, flagHiato
+            call PRINT
+            call impsalto
+            imprimir msjProp, 0Fh
+            ;proporcion 
+            xor ax,ax
+            mov ax,100
+            mul flagHiato
+            div counterwords
+            mov prophiato,al
+            xor ax,ax
+            mov al,prophiato
+            call PRINT
+            imprime percent
+            call impsalto
+        imprimir msjTript, 14
+        call impsalto
+            imprimir msjCanti, 0Fh
+            clasificarTriptongo leido
+            ;cantidad:
+            xor ax,ax
+            mov al, flagTriptongo
+            call PRINT
+            call impsalto
+            imprimir msjProp, 0Fh
+            ;proporcion 
+            xor ax,ax
+            mov ax,100
+            mul flagTriptongo
+            div counterwords
+            mov proptriptongo,al
+            xor ax,ax
+            mov al,proptriptongo
+            call PRINT
+            imprime percent
+            call impsalto
+        contarPalabrasPrint
+        call impsalto
+
+    endm 
+
+
+    writeReporte macro 
+        contarPalabras
+            clasificarDiptongo leido  
+            ;;;;;diptongo
+            ;cantidad: 
+            xor ax,ax
+            mov al, flagDiptongo
+            CALL NOPRINT
+            mov al, numero[1]
+            mov textoreporte[24],al 
+            mov al, numero[2]
+            mov textoreporte[25],al 
+            ;proporcion
+            xor ax,ax
+            mov ax,100
+            mul flagDiptongo
+            div counterwords
+            mov propdiptongo,al
+            xor ax,ax
+            mov al,propdiptongo
+            call NOPRINT
+            mov al, numero[1]
+            mov textoreporte[44],al 
+            mov al, numero[2]
+            mov textoreporte[45],al 
+            ;;;;;diptongo
+            clasificarHiato leido
+           ;cantidad:
+            xor ax,ax
+            mov al, flagHiato
+            call NOPRINT
+            mov al, numero[1]
+            mov textoreporte[70],al 
+            mov al, numero[2]
+            mov textoreporte[71],al 
+            ;proporcion 
+            xor ax,ax
+            mov ax,100
+            mul flagHiato
+            div counterwords
+            mov prophiato,al
+            xor ax,ax
+            mov al,prophiato
+            call NOPRINT
+            mov al, numero[1]
+            mov textoreporte[90],al 
+            mov al, numero[2]
+            mov textoreporte[91],al 
+            ;;;;;triptongo
+            clasificarTriptongo leido
+            ;cantidad:
+            xor ax,ax
+            mov al, flagTriptongo
+            call NOPRINT
+            mov al, numero[1]
+            mov textoreporte[120],al 
+            mov al, numero[2]
+            mov textoreporte[121],al 
+            ;proporcion 
+            xor ax,ax
+            mov ax,100
+            mul flagTriptongo
+            div counterwords
+            mov proptriptongo,al
+            xor ax,ax
+            mov al,proptriptongo
+            call NOPRINT
+            mov al, numero[1]
+            mov textoreporte[140],al 
+            mov al, numero[2]
+            mov textoreporte[141],al 
+            call impsalto
+    endm 

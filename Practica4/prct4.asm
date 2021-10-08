@@ -12,6 +12,7 @@ include prct4m2.asm
     entradasTeclado db  ?
     entradasTeclad2 db  100 dup('$')
     errorComand db "Error al ingresar comando",'$'
+    errorarch db "Error al crear archivo",'$'
     filename db "Prueba.txt",0
 
     flagDiptongo db 0
@@ -23,32 +24,41 @@ include prct4m2.asm
     flagsimple db 0
     flagTriptongo db 0
     handle dw 0
+    handlerep dw 0
     headuniversidad db "    Universidad de San Carlos de Guatemala",'$'
     headACE1 db "    Arquitectura de computadores y ensambladores 1",'$'
     headnombrecarne db "    Josu",82h," Daniel Caal Torres 201408473",'$'
     headprct4 db "    Pr",0A0h,"ctica 4",'$'
     headcerrar db "    Ingrese x si desea cerrar el programa",'$'
     leido db 1023 dup("$"),'$'
+    leidorep db 1023 dup("$"),'$'
     msjcrear db "Archivo creado",'$'
     msjerrorabrir db "Error al abrir ", '$'
     msjerrorcerrar db "Error al cerrar archivo", '$'
     msjabierto db "Archivo abierto:  ", '$'
     msjNoTXT db "No es .txt, la extensi",0A2h,"n es: ",'$'
-    msjDipt db "Fase diptongo", '$'
-    msjTript db "Fase triptongo", '$'
-    msjHiato db "Fase hiato",'$'
-    msjProp db "Fase proporcion",'$'
+    msjCanti db "    Cantidad: ",'$'
+    msjDipt db "Diptongo: ", '$'
+    msjHiato db "Hiato: ",'$'
+    msjTript db "Triptongo: ", '$'
+    msjProp db "    Proporci",0A2H,"n: ",'$'
     msjRept db "Generando reporte",'$'
     nochar db " ",'$'
+    numero db 0,0,0,'$'
     numeros db "123456789",'$'
     pedircom db "Ingrese comando: ",'$'
     random db "^",'$'
     reportname db "reporte.txt",0
     palabra db 64 dup("$")
+    palabrapala db " palabras",'$'
     path db 64 dup(0) 
+    percent db "%",'$'
+    propdiptongo db 0
+    prophiato db 0
+    proptriptongo db 0
     signos db "=|-#",'$'
     textosalir db "Termin",0A2h," la ejecuci",0A2h,"n",'$'
-
+    textoreporte db "Diptongo",13,10,"    Cantidad:    ",13,10,"    Proporcion:  %",13,10,"Hiato",13,10,"    Cantidad:    ",13,10,"    Proporcion:  %",13,10,"Triptongo",13,10,"    Cantidad:    ",13,10,"    Proporcion:  %",'$' 
     diptongo db "ia ie io ua ue uo ai au ei eu oi ou iu ui",'$'
     hiato db "aí aú eí eú oí oú ía íe ío úa úe úo aa ee ii oo uu ae ao ea eo oa oe",'$'
     triptongo db "iai ieu iei ieu ioi iou uai uau uei ueu uoi uou",'$'
@@ -106,12 +116,43 @@ include prct4m2.asm
     exit:
     ret
     PRINT ENDP
+
+    NOPRINT PROC             
+        ;initialize count
+        mov numero[1], 0
+        mov numero[1], 0
+        mov cx,0
+        mov dx,0
+        NOlabel1:
+            cmp ax,0
+            je NOprint1                
+            mov bx,10                  
+            div bx                         
+            push dx                       
+            inc cx                       
+            xor dx,dx
+            jmp NOlabel1
+        NOprint1:
+            cmp cx,0
+            je exitN     
+            mov bx,3 
+            sub bx,cx    
+            pop dx
+            add dx,48    
+            mov numero[bx] , dl          
+            dec cx
+            jmp NOprint1
+        exitN:
+        ret
+    NOPRINT ENDP
+
     impsalto proc
-        mov ah,02h
-        mov dl,0ah ;salto de línea
-        int 21h
+
         mov ah,02h
         mov dl,0dh ;retorno de carro
+        int 21h
+        mov ah,02h
+        mov dl,0ah ;salto de línea
         int 21h
         ret
     impsalto endp    
